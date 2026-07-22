@@ -1,0 +1,843 @@
+<!DOCTYPE html>
+<html lang="kk">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <title>💖 Do You Love Me?</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            overflow: hidden;
+            background: #0a0515;
+            font-family: 'Segoe UI', 'Arial', sans-serif;
+            height: 100vh;
+            width: 100vw;
+            user-select: none;
+            cursor: default;
+        }
+
+        /* ===== СҰРАҚ КОНТЕЙНЕРІ ===== */
+        #question-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 100;
+            pointer-events: none;
+        }
+
+        .question-box {
+            background: rgba(10, 5, 30, 0.75);
+            backdrop-filter: blur(25px);
+            -webkit-backdrop-filter: blur(25px);
+            padding: 45px 55px;
+            border-radius: 45px;
+            border: 1px solid rgba(255, 100, 200, 0.2);
+            box-shadow: 0 0 80px rgba(255, 50, 150, 0.25), 0 0 200px rgba(150, 50, 255, 0.1);
+            text-align: center;
+            pointer-events: auto;
+            animation: floatIn 1s ease-out;
+            max-width: 90vw;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .question-box::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle at center, rgba(255, 50, 150, 0.05), transparent 70%);
+            animation: rotateGlow 20s linear infinite;
+            pointer-events: none;
+        }
+
+        @keyframes rotateGlow {
+            0% {
+                transform: rotate(0deg);
+            }
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+
+        @keyframes floatIn {
+            0% {
+                transform: scale(0.8) translateY(30px);
+                opacity: 0;
+            }
+            100% {
+                transform: scale(1) translateY(0);
+                opacity: 1;
+            }
+        }
+
+        .question-text {
+            color: #fff;
+            font-size: clamp(28px, 6vw, 64px);
+            font-weight: 200;
+            letter-spacing: 4px;
+            margin-bottom: 10px;
+            text-shadow: 0 0 30px rgba(255, 100, 200, 0.3);
+            position: relative;
+            z-index: 1;
+        }
+
+        .question-text .heart-emoji {
+            color: #ff2d6a;
+            display: inline-block;
+            animation: heartBeat 1.5s ease-in-out infinite;
+        }
+
+        @keyframes heartBeat {
+            0%,
+            100% {
+                transform: scale(1);
+            }
+            15% {
+                transform: scale(1.3);
+            }
+            30% {
+                transform: scale(1);
+            }
+            45% {
+                transform: scale(1.2);
+            }
+            60% {
+                transform: scale(1);
+            }
+        }
+
+        .sub-text {
+            color: rgba(255, 200, 255, 0.4);
+            font-size: clamp(12px, 1.2vw, 18px);
+            letter-spacing: 6px;
+            font-weight: 300;
+            margin-bottom: 30px;
+            position: relative;
+            z-index: 1;
+        }
+
+        /* ===== ТҮЙМЕЛЕР ===== */
+        .button-group {
+            display: flex;
+            gap: 30px;
+            justify-content: center;
+            align-items: center;
+            flex-wrap: wrap;
+            position: relative;
+            min-height: 70px;
+            z-index: 1;
+        }
+
+        .btn {
+            padding: 14px 50px;
+            border: none;
+            border-radius: 60px;
+            font-size: clamp(18px, 2.5vw, 28px);
+            font-weight: 600;
+            letter-spacing: 2px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            min-width: 120px;
+            font-family: inherit;
+            pointer-events: auto;
+        }
+
+        .btn-yes {
+            background: linear-gradient(135deg, #ff2d6a, #ff6b9e);
+            color: #fff;
+            box-shadow: 0 0 40px rgba(255, 45, 106, 0.4);
+            transition: all 0.3s ease;
+        }
+
+        .btn-yes:hover {
+            transform: scale(1.08);
+            box-shadow: 0 0 60px rgba(255, 45, 106, 0.6);
+        }
+
+        .btn-yes:active {
+            transform: scale(0.95);
+        }
+
+        .btn-no {
+            background: rgba(255, 255, 255, 0.08);
+            color: rgba(255, 255, 255, 0.8);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(10px);
+            transition: all 0.1s ease;
+            position: absolute;
+            min-width: 100px;
+            z-index: 10;
+        }
+
+        .btn-no:hover {
+            background: rgba(255, 50, 80, 0.15);
+            border-color: rgba(255, 50, 80, 0.3);
+        }
+
+        /* ===== ЖАУАП БӨЛІМІ ===== */
+        #response-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 200;
+            pointer-events: none;
+            background: rgba(10, 5, 20, 0.4);
+            backdrop-filter: blur(8px);
+        }
+
+        #response-container.show {
+            display: flex;
+            animation: fadeIn 0.8s ease-out;
+        }
+
+        @keyframes fadeIn {
+            0% {
+                opacity: 0;
+                transform: scale(0.9);
+            }
+            100% {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+
+        .response-box {
+            background: rgba(10, 5, 30, 0.85);
+            backdrop-filter: blur(30px);
+            padding: 50px 60px;
+            border-radius: 50px;
+            border: 1px solid rgba(255, 100, 200, 0.3);
+            box-shadow: 0 0 100px rgba(255, 50, 150, 0.3);
+            text-align: center;
+            pointer-events: auto;
+            max-width: 90vw;
+            animation: floatIn 0.6s ease-out;
+        }
+
+        .response-text {
+            color: #fff;
+            font-size: clamp(32px, 7vw, 80px);
+            font-weight: 200;
+            letter-spacing: 6px;
+            text-shadow: 0 0 40px rgba(255, 100, 200, 0.4);
+        }
+
+        .response-sub {
+            color: rgba(255, 200, 255, 0.5);
+            font-size: clamp(14px, 1.5vw, 22px);
+            margin-top: 15px;
+            letter-spacing: 3px;
+        }
+
+        .btn-restart {
+            margin-top: 30px;
+            padding: 12px 40px;
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            border-radius: 60px;
+            background: transparent;
+            color: rgba(255, 255, 255, 0.6);
+            font-size: 14px;
+            letter-spacing: 3px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-family: inherit;
+        }
+
+        .btn-restart:hover {
+            background: rgba(255, 255, 255, 0.05);
+            border-color: rgba(255, 255, 255, 0.3);
+        }
+
+        /* ===== 3D ЖҮРЕКТЕР КОНТЕЙНЕРІ ===== */
+        #three-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            z-index: 1;
+            pointer-events: none;
+        }
+
+        /* ===== ТӨМЕНГІ АЯҚ ===== */
+        #footer {
+            position: fixed;
+            bottom: 20px;
+            left: 0;
+            width: 100%;
+            text-align: center;
+            color: rgba(255, 200, 255, 0.12);
+            font-size: 11px;
+            letter-spacing: 2px;
+            z-index: 50;
+            pointer-events: none;
+            font-weight: 300;
+        }
+
+        /* ===== МОБИЛЬДІ ҚОЛДАУ ===== */
+        @media (max-width: 600px) {
+            .question-box {
+                padding: 25px 20px;
+                border-radius: 28px;
+                max-width: 95vw;
+            }
+
+            .btn {
+                padding: 12px 30px;
+                font-size: clamp(16px, 4vw, 22px);
+                min-width: 80px;
+            }
+
+            .button-group {
+                gap: 15px;
+            }
+
+            .response-box {
+                padding: 30px 20px;
+            }
+        }
+
+        @media (max-width: 400px) {
+            .question-box {
+                padding: 20px 15px;
+            }
+
+            .btn {
+                padding: 10px 20px;
+                font-size: 14px;
+                min-width: 60px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- ===== 3D ЖҮРЕКТЕР ===== -->
+    <div id="three-container"></div>
+
+    <!-- ===== СҰРАҚ ===== -->
+    <div id="question-container">
+        <div class="question-box">
+            <div class="question-text">
+                Do you <span class="heart-emoji">❤️</span> love me?
+            </div>
+            <div class="sub-text">✦ ақиқат жауап ✦</div>
+            <div class="button-group" id="button-group">
+                <button class="btn btn-yes" id="yesBtn">Иә 💖</button>
+                <button class="btn btn-no" id="noBtn">Жоқ 😅</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===== ЖАУАП ===== -->
+    <div id="response-container">
+        <div class="response-box">
+            <div class="response-text" id="responseText">💖 Мен білдім! 💖</div>
+            <div class="response-sub" id="responseSub">Сен мені жақсы көресің!</div>
+            <button class="btn-restart" id="restartBtn">⟳ Қайтадан</button>
+        </div>
+    </div>
+
+    <!-- ===== ТӨМЕНГІ АЯҚ ===== -->
+    <div id="footer">✦ шексіз махаббат ✦</div>
+
+    <!-- ===== THREE.JS ===== -->
+    <script type="importmap">
+        {
+            "imports": {
+                "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
+                "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/"
+            }
+        }
+    </script>
+
+    <script type="module">
+        // ============================================================
+        // 1. THREE.JS - ТЕК ЖҮРЕКТЕР (ГАЛАКТИКАСЫЗ)
+        // ============================================================
+        import * as THREE from 'three';
+        import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+        import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
+        import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
+        import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
+
+        // --- Саҳна ---
+        const container = document.getElementById('three-container');
+        const scene = new THREE.Scene();
+        scene.background = new THREE.Color(0x0a0515);
+
+        // --- Камера ---
+        const camera = new THREE.PerspectiveCamera(50, window.innerWidth / window.innerHeight, 0.1, 100);
+        camera.position.set(0, 2, 8);
+        camera.lookAt(0, 0, 0);
+
+        // --- Рендерер ---
+        const renderer = new THREE.WebGLRenderer({
+            antialias: true,
+            alpha: false
+        });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+        renderer.toneMapping = THREE.ACESFilmicToneMapping;
+        renderer.toneMappingExposure = 1.2;
+        container.appendChild(renderer.domElement);
+
+        // --- Пост-процессинг ---
+        const composer = new EffectComposer(renderer);
+        const renderPass = new RenderPass(scene, camera);
+        composer.addPass(renderPass);
+
+        const bloomPass = new UnrealBloomPass(
+            new THREE.Vector2(window.innerWidth, window.innerHeight),
+            0.6, 0.3, 0.1
+        );
+        composer.addPass(bloomPass);
+
+        // --- Басқару (авто-айналу) ---
+        const controls = new OrbitControls(camera, renderer.domElement);
+        controls.enableDamping = true;
+        controls.dampingFactor = 0.05;
+        controls.autoRotate = true;
+        controls.autoRotateSpeed = 1.2;
+        controls.enableZoom = false;
+        controls.enablePan = false;
+        controls.target.set(0, 0.5, 0);
+
+        // --- Жарық ---
+        const ambient = new THREE.AmbientLight(0x222255, 0.8);
+        scene.add(ambient);
+
+        const light1 = new THREE.DirectionalLight(0xff88bb, 2.0);
+        light1.position.set(3, 5, 3);
+        scene.add(light1);
+
+        const light2 = new THREE.DirectionalLight(0x8888ff, 1.0);
+        light2.position.set(-3, 2, 3);
+        scene.add(light2);
+
+        const light3 = new THREE.PointLight(0xff2d6a, 0.5, 10);
+        light3.position.set(0, 1, 2);
+        scene.add(light3);
+
+        // --- 3D Жүрек (орталық) ---
+        function createHeart3D() {
+            const shape = new THREE.Shape();
+            shape.moveTo(0, 0.35);
+            shape.bezierCurveTo(0.35, 0.7, 0.7, 0.35, 0.7, 0);
+            shape.bezierCurveTo(0.7, -0.35, 0.35, -0.6, 0, -0.9);
+            shape.bezierCurveTo(-0.35, -0.6, -0.7, -0.35, -0.7, 0);
+            shape.bezierCurveTo(-0.7, 0.35, -0.35, 0.7, 0, 0.35);
+
+            const extrudeSettings = {
+                depth: 0.5,
+                bevelEnabled: true,
+                bevelSegments: 8,
+                steps: 6,
+                bevelSize: 0.1,
+                bevelThickness: 0.15,
+                curveSegments: 64
+            };
+
+            const geo = new THREE.ExtrudeGeometry(shape, extrudeSettings);
+            geo.center();
+
+            const mat = new THREE.MeshPhysicalMaterial({
+                color: 0xff2d6a,
+                emissive: 0xff2d6a,
+                emissiveIntensity: 0.6,
+                metalness: 0.2,
+                roughness: 0.15,
+                clearcoat: 0.4,
+                clearcoatRoughness: 0.15,
+                transparent: true,
+                opacity: 0.95,
+                side: THREE.DoubleSide,
+                envMapIntensity: 0.8
+            });
+
+            const heart = new THREE.Mesh(geo, mat);
+            heart.scale.set(0.8, 0.8, 0.8);
+            heart.position.set(0, 0.2, 0);
+            heart.castShadow = true;
+            heart.receiveShadow = true;
+            scene.add(heart);
+
+            // --- Жарқыл ---
+            const glowGeo = new THREE.SphereGeometry(1.0, 32, 32);
+            const glowMat = new THREE.MeshBasicMaterial({
+                color: 0xff2d6a,
+                transparent: true,
+                opacity: 0.08,
+                blending: THREE.AdditiveBlending
+            });
+            const glow = new THREE.Mesh(glowGeo, glowMat);
+            heart.add(glow);
+
+            return heart;
+        }
+        const centralHeart = createHeart3D();
+
+        // --- Ұшатын жүректер (100 дана) ---
+        function createFlyingHearts() {
+            const group = new THREE.Group();
+            const count = 100;
+
+            for (let i = 0; i < count; i++) {
+                const shape = new THREE.Shape();
+                shape.moveTo(0, 0.12);
+                shape.bezierCurveTo(0.12, 0.24, 0.24, 0.12, 0.24, 0);
+                shape.bezierCurveTo(0.24, -0.12, 0.12, -0.2, 0, -0.3);
+                shape.bezierCurveTo(-0.12, -0.2, -0.24, -0.12, -0.24, 0);
+                shape.bezierCurveTo(-0.24, 0.12, -0.12, 0.24, 0, 0.12);
+
+                const geo = new THREE.ShapeGeometry(shape);
+                const hue = 0.88 + Math.random() * 0.12;
+                const color = new THREE.Color().setHSL(hue, 0.9, 0.5 + Math.random() * 0.4);
+                const mat = new THREE.MeshPhysicalMaterial({
+                    color: color,
+                    emissive: color,
+                    emissiveIntensity: 0.4 + Math.random() * 0.4,
+                    transparent: true,
+                    opacity: 0.5 + Math.random() * 0.5,
+                    metalness: 0.1,
+                    roughness: 0.3,
+                    side: THREE.DoubleSide
+                });
+
+                const heart = new THREE.Mesh(geo, mat);
+
+                const radius = 1.5 + Math.random() * 5;
+                const angle = Math.random() * Math.PI * 2;
+                const height = (Math.random() - 0.5) * 4;
+
+                heart.position.set(
+                    radius * Math.cos(angle),
+                    height + 0.2,
+                    radius * Math.sin(angle)
+                );
+
+                const scale = 0.2 + Math.random() * 0.6;
+                heart.scale.set(scale, scale, scale);
+                heart.rotation.set(Math.random() * Math.PI, Math.random() * Math.PI, Math.random() * Math.PI);
+
+                heart.userData = {
+                    angle: angle,
+                    radius: radius,
+                    height: height,
+                    speed: 0.3 + Math.random() * 0.7,
+                    rotSpeed: new THREE.Vector3(
+                        (Math.random() - 0.5) * 0.04,
+                        (Math.random() - 0.5) * 0.04,
+                        (Math.random() - 0.5) * 0.04
+                    ),
+                    floatSpeed: 0.4 + Math.random() * 0.6,
+                    floatOffset: Math.random() * Math.PI * 2
+                };
+
+                group.add(heart);
+            }
+            scene.add(group);
+            return group;
+        }
+        const flyingHearts = createFlyingHearts();
+
+        // --- Фондық жұлдыздар (аз ғана) ---
+        function createBgStars() {
+            const count = 800;
+            const pos = new Float32Array(count * 3);
+            for (let i = 0; i < count; i++) {
+                const r = 15 + Math.random() * 30;
+                const theta = Math.random() * Math.PI * 2;
+                const phi = Math.acos((Math.random() * 2) - 1);
+                pos[i * 3] = r * Math.sin(phi) * Math.cos(theta);
+                pos[i * 3 + 1] = r * Math.sin(phi) * Math.sin(theta) * 0.3;
+                pos[i * 3 + 2] = r * Math.cos(phi);
+            }
+            const geo = new THREE.BufferGeometry();
+            geo.setAttribute('position', new THREE.BufferAttribute(pos, 3));
+            const mat = new THREE.PointsMaterial({
+                color: 0x8899ff,
+                size: 0.05,
+                transparent: true,
+                opacity: 0.3,
+                blending: THREE.AdditiveBlending
+            });
+            const stars = new THREE.Points(geo, mat);
+            scene.add(stars);
+            return stars;
+        }
+        const bgStars = createBgStars();
+
+        // --- Анимация ---
+        function animate() {
+            const delta = clock.getDelta();
+            const elapsed = performance.now() / 1000;
+
+            // Орталық жүрек
+            centralHeart.rotation.y += delta * 0.5;
+            centralHeart.rotation.x = Math.sin(elapsed * 0.2) * 0.05;
+            const pulse = 1 + Math.sin(elapsed * 2.5) * 0.04;
+            centralHeart.scale.set(0.8 * pulse, 0.8 * pulse, 0.8 * pulse);
+
+            // Ұшатын жүректер
+            flyingHearts.children.forEach((heart) => {
+                const data = heart.userData;
+                data.angle += delta * data.speed * 0.2;
+                const yOffset = Math.sin(elapsed * data.floatSpeed + data.floatOffset) * 0.4;
+
+                heart.position.x = data.radius * Math.cos(data.angle);
+                heart.position.z = data.radius * Math.sin(data.angle);
+                heart.position.y = data.height + yOffset + 0.2;
+
+                heart.rotation.x += data.rotSpeed.x * delta * 20;
+                heart.rotation.y += data.rotSpeed.y * delta * 20;
+                heart.rotation.z += data.rotSpeed.z * delta * 20;
+
+                // Жарқыл пульсациясы
+                heart.material.emissiveIntensity = 0.4 + Math.sin(elapsed * 1.5 + data.floatOffset) * 0.3;
+            });
+
+            // Фондық жұлдыздар
+            bgStars.rotation.y += delta * 0.005;
+
+            controls.update();
+            composer.render();
+            requestAnimationFrame(animate);
+        }
+
+        const clock = new THREE.Clock();
+        animate();
+
+        // --- Терезе өлшемі ---
+        window.addEventListener('resize', () => {
+            const w = window.innerWidth;
+            const h = window.innerHeight;
+            camera.aspect = w / h;
+            camera.updateProjectionMatrix();
+            renderer.setSize(w, h);
+            composer.setSize(w, h);
+        });
+
+        // ============================================================
+        // 2. "DO YOU LOVE ME?" ЛОГИКАСЫ
+        // ============================================================
+        const noBtn = document.getElementById('noBtn');
+        const yesBtn = document.getElementById('yesBtn');
+        const questionContainer = document.getElementById('question-container');
+        const responseContainer = document.getElementById('response-container');
+        const responseText = document.getElementById('responseText');
+        const responseSub = document.getElementById('responseSub');
+        const restartBtn = document.getElementById('restartBtn');
+        const buttonGroup = document.getElementById('button-group');
+
+        let clickCount = 0;
+
+        // --- "No" түймесі қашады ---
+        function moveNoButton() {
+            if (!buttonGroup) return;
+
+            const rect = buttonGroup.getBoundingClientRect();
+            const btnRect = noBtn.getBoundingClientRect();
+
+            const maxX = rect.width - btnRect.width - 10;
+            const maxY = rect.height - btnRect.height - 10;
+
+            const newX = Math.floor(Math.random() * Math.max(maxX, 10));
+            const newY = Math.floor(Math.random() * Math.max(maxY, 10));
+
+            noBtn.style.position = 'absolute';
+            noBtn.style.left = `${newX}px`;
+            noBtn.style.top = `${newY}px`;
+            noBtn.style.transform = 'scale(0.9)';
+
+            setTimeout(() => {
+                noBtn.style.transform = 'scale(1)';
+            }, 150);
+        }
+
+        // --- "No" түймесіне оқиғалар ---
+        noBtn.addEventListener('mouseover', moveNoButton);
+        noBtn.addEventListener('touchstart', function(e) {
+            e.preventDefault();
+            moveNoButton();
+        });
+
+        // --- "Yes" түймесі ---
+        yesBtn.addEventListener('click', function() {
+            showResponse('💖 Мен білдім! 💖', 'Сен мені жақсы көресің! 😊', '#ff2d6a');
+            createHeartExplosion();
+        });
+
+        // --- "No" түймесіне клик (әзіл) ---
+        noBtn.addEventListener('click', function(e) {
+            e.stopPropagation();
+            clickCount++;
+
+            const messages = [
+    'Жоқ 😅',
+    'Әлі? 🤔',
+    'Қайта ойлан! 😄',
+    'Мен сені жеңемін! 💪',
+    'Таптың ба? 😏',
+    'Қашып кетті! 🏃',
+    'Ұстап көр! 😂',
+    'Маған жете алмайсың! ✨',
+    'Шеберлік! 🎯',
+    'Қайтадан! 😜',
+    'Әрекет ет! 🏃‍♂️',
+    'Қайдасың? 👀',
+    'Жоқ! 🙈',
+    'Ойлан! 🤓',
+    'Ұста! 🫳',
+    'Кешіктің! ⏰',
+    'Тағы байқап көр! 😆',
+    'Жақындап қалдың! 😏',
+    'Сәл қалды! 🤏',
+    'Қолың жетпеді! 😂',
+    'Тағы да мүлт кетті! 😅',
+    'Жылдамырақ! ⚡',
+    'Сенен қашып барамын! 🏃',
+    'Ұстай алмайсың! 😝',
+    'Кәне тағы! 🔥',
+    'Әлі де жоқ! 🙃',
+    'Тезірек! 🚀',
+    'Қайта көр! 😄',
+    'Сәттілік! 🍀',
+    'Жарайсың, бірақ жоқ! 😜'
+];
+
+if (clickCount < 10) {
+
+    moveNoButton();
+
+    // Кнопкадағы кездейсоқ мәтін
+    const randomText = messages[Math.floor(Math.random() * messages.length)];
+    noBtn.textContent = `${randomText} (${clickCount})`;
+
+    // Экранда басқа кездейсоқ хабарлама
+    const randomMessage = messages[Math.floor(Math.random() * messages.length)];
+    showTemporaryMessage(randomMessage);
+
+} else {
+
+    showResponse(
+        '💖 Ақыры! 💖',
+        'Сен мені сүйесің! 🥰',
+        '#ff6b9e'
+    );
+
+    createHeartExplosion();
+    noBtn.style.display = 'none';
+    yesBtn.style.display = 'none';
+}
+        });
+
+        // --- Уақытша хабар ---
+        function showTemporaryMessage(text) {
+            const msg = document.createElement('div');
+            msg.style.cssText = `
+                        position: fixed;
+                        top: 20%;
+                        left: 50%;
+                        transform: translateX(-50%);
+                        color: #ff88bb;
+                        font-size: clamp(20px, 4vw, 40px);
+                        font-weight: 200;
+                        letter-spacing: 4px;
+                        z-index: 300;
+                        background: rgba(10,5,30,0.7);
+                        padding: 15px 30px;
+                        border-radius: 30px;
+                        backdrop-filter: blur(10px);
+                        border: 1px solid rgba(255,100,200,0.2);
+                        animation: floatIn 0.5s ease-out;
+                        pointer-events: none;
+                    `;
+            msg.textContent = text;
+            document.body.appendChild(msg);
+            setTimeout(() => {
+                msg.style.opacity = '0';
+                msg.style.transition = 'opacity 0.5s';
+                setTimeout(() => msg.remove(), 500);
+            }, 1500);
+        }
+
+        // --- Жауап көрсету ---
+        function showResponse(text, sub, color) {
+            responseText.textContent = text;
+            responseSub.textContent = sub;
+            responseText.style.color = color || '#ff2d6a';
+            responseContainer.classList.add('show');
+            questionContainer.style.display = 'none';
+            document.getElementById('footer').style.display = 'none';
+        }
+
+        // --- Жүрек жарылысы (эффект) ---
+        function createHeartExplosion() {
+            const emojis = ['❤️', '💖', '💗', '💓', '💕', '💝', '💘', '♥️'];
+            for (let i = 0; i < 40; i++) {
+                setTimeout(() => {
+                    const heart = document.createElement('div');
+                    heart.textContent = emojis[Math.floor(Math.random() * emojis.length)];
+                    heart.style.cssText = `
+                                position: fixed;
+                                font-size: ${20 + Math.random() * 50}px;
+                                left: ${Math.random() * 100}vw;
+                                top: ${Math.random() * 100}vh;
+                                z-index: 500;
+                                pointer-events: none;
+                                animation: floatUp ${1.5 + Math.random() * 2}s ease-out forwards;
+                                opacity: 0;
+                            `;
+                    document.body.appendChild(heart);
+
+                    const style = document.createElement('style');
+                    style.textContent = `
+                                @keyframes floatUp {
+                                    0% { opacity: 1; transform: translateY(0) scale(0) rotate(0deg); }
+                                    100% { opacity: 0; transform: translateY(-300px) scale(1.5) rotate(720deg); }
+                                }
+                            `;
+                    document.head.appendChild(style);
+                    setTimeout(() => heart.remove(), 3500);
+                }, i * 60);
+            }
+        }
+
+        // --- Қайта бастау ---
+        restartBtn.addEventListener('click', function() {
+            responseContainer.classList.remove('show');
+            questionContainer.style.display = 'flex';
+            document.getElementById('footer').style.display = 'block';
+            noBtn.style.display = 'block';
+            yesBtn.style.display = 'block';
+            noBtn.style.position = 'static';
+            noBtn.textContent = 'Жоқ 😅';
+            clickCount = 0;
+        });
+
+        console.log('💖 Do You Love Me? - Галактикасыз нұсқа!');
+        console.log('💕 "No" түймесін ұстап көріңіз 😄');
+    </script>
+</body>
+</html>
